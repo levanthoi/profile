@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import type { Metadata } from 'next';
+// import type { Metadata } from 'next';
 import Navbar from '@/components/global/Navbar';
 import Image from 'next/image';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -8,10 +8,10 @@ import { ModeToggle } from '@/components/global/darkmode';
 import { preahvihear } from '../fonts';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: 'Portfolio for Onembes',
-  description: 'Portfolio for Onembes',
-};
+// export const metadata: Metadata = {
+//   title: 'Portfolio for Onembes',
+//   description: 'Portfolio for Onembes',
+// };
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
