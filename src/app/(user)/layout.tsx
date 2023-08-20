@@ -16,7 +16,7 @@ import Link from 'next/link';
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className={`${preahvihear.variable}`}>
-      <header className="flex justify-between mt-2 px-8">
+      <header className="flex justify-between mt-2 sm:px-8 px-2">
         <Link href="/">
           <Image
             src="/signature.png"
