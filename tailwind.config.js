@@ -85,6 +85,7 @@ module.exports = {
       },
       fontFamily: {
         preahvihear: 'var(--font-preahvihear)',
+        nunito: 'var(--font-nunito)',
       },
     },
   },

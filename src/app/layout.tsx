@@ -1,9 +1,7 @@
 import { ThemeProvider } from '@/components/global/theme-provider';
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'] });
+import { nunito } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Portfolio for Onembes',
@@ -16,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body>
+      <body className={`${nunito.variable} font-nunito`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {children}
         </ThemeProvider>
