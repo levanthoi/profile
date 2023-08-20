@@ -16,8 +16,8 @@ const page = async () => {
 
   return (
     <div className="my-4">
-      {projects?.length > 0
-        ? projects?.map((project: any) => <ProjectItem key={project?.id} project={project} />)
+      {projects.data?.length > 0
+        ? projects.data?.map((project: any) => <ProjectItem key={project?.id} project={project} />)
         : 'Nothing'}
     </div>
   );
