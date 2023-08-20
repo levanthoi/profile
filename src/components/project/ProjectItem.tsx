@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { IContributors, IProject } from '@/types/project.type';
 import { Copy, Eye, GitFork, Star } from 'lucide-react';
 import ProjectIcon from './ProjectIcon';
+import { useWindowDemension } from '@/hooks/useWindowDemension';
 
 interface Props {
   project: IProject;
@@ -14,16 +15,18 @@ interface Props {
 
 const ProjectItem: React.FC<Props> = ({ project }) => {
   const { trafficViews, trafficClones, languages, forks, stargazers_count, contributors } = project;
+
+  // const {windowDemension} = useWindowDemension()
   return (
-    <div className="flex even:flex-row-reverse my-16 gap-8">
+    <div className="lg:flex even:flex-row-reverse lg:my-16 lg:gap-8 my-8">
       {/* Content */}
       <div className="basis-1/2 flex flex-col gap-4">
         <Link href={project.html_url || '/'}>
-          <b className="text-3xl text-secondary-foreground hover:underline hover:text-purple-700 duration-200">
+          <b className="lg:text-3xl sm:text-2xl text-lg text-secondary-foreground hover:underline hover:text-purple-700 duration-200">
             {project.name}
           </b>
         </Link>
-        <div className="flex justify-between">
+        <div className="flex justify-between sm:flex-row flex-col gap-2">
           <div className="flex gap-2">
             <ProjectIcon text={trafficViews.count} Icon={Eye} tooltip="Views" bg="bg-purple-500" />
             <ProjectIcon text={trafficClones.count} Icon={Copy} tooltip="Clones" bg="bg-sky-500" />
@@ -65,7 +68,7 @@ const ProjectItem: React.FC<Props> = ({ project }) => {
         </div>
       </div>
       {/* Image */}
-      <div className="basis-1/2 flex-grow">
+      <div className="lg:basis-1/2 lg:flex-grow hidden lg:block">
         <div className="w-full h-full relative overflow-hidden border border-spacing-2">
           <Image src="/proj1.png" alt="hook" width={650} height={300} className="h-auto" />
         </div>
