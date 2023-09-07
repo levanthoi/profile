@@ -3,7 +3,12 @@ import { getRepositories } from '@/services/project.service';
 import React from 'react';
 
 async function getProjects() {
-  const res = await getRepositories();
+  const queryParams = {
+    visibility: 'public',
+    per_page: 10,
+    sort: 'pushed',
+  };
+  const res = await getRepositories(queryParams);
   if (!res.ok) {
     // This will activate the closest `error.js` Error Boundary
     throw new Error('Failed to fetch data');
