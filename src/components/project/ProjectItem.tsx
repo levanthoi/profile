@@ -14,7 +14,8 @@ interface Props {
 }
 
 const ProjectItem: React.FC<Props> = ({ project }) => {
-  const { trafficViews, trafficClones, languages, forks, stargazers_count, contributors } = project;
+  const { trafficViews, trafficClones, languages, forks, stargazers_count, contributors, images } =
+    project;
 
   // const {windowDemension} = useWindowDemension()
   return (
@@ -69,8 +70,14 @@ const ProjectItem: React.FC<Props> = ({ project }) => {
       </div>
       {/* Image */}
       <div className="lg:basis-1/2 lg:flex-grow hidden lg:block">
-        <div className="w-full h-full relative overflow-hidden border border-spacing-2">
-          <Image src="/proj1.png" alt="hook" width={650} height={300} className="h-auto" />
+        <div className="w-full h-full relative overflow-hidden ">
+          <Image
+            src={images[0]?.url || '/comming.jpg'}
+            alt="hook"
+            width={650}
+            height={300}
+            className="h-auto"
+          />
         </div>
       </div>
     </div>
