@@ -18,6 +18,11 @@ export interface ILanguage {
   [key: string]: number;
 }
 
+export interface IImage {
+  uid: string;
+  url: string;
+}
+
 export interface IProject {
   id: number;
   name: string;
@@ -26,6 +31,7 @@ export interface IProject {
   description: string;
   license: string;
   topics: string[];
+  images: IImage[];
   forks: number;
   stargazers_count: number;
   contributors: IContributors[];
