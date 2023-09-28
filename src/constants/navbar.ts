@@ -20,4 +20,9 @@ export const navbars: Navbar[] = [
     title: 'Work',
     slug: '/work',
   },
+  {
+    id: '4',
+    title: 'Blogs',
+    slug: '/blogs',
+  },
 ];
