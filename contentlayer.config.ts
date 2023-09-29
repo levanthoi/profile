@@ -1,8 +1,10 @@
 import { defineDocumentType, makeSource } from 'contentlayer/source-files';
+import readingTime from 'reading-time';
 
 export const Blog = defineDocumentType(() => ({
   name: 'Blog',
   filePathPattern: `**/**/*.mdx`,
+  contentType: 'mdx',
   fields: {
     title: { type: 'string', required: true },
     publishedAt: { type: 'date', required: true },
@@ -18,6 +20,7 @@ export const Blog = defineDocumentType(() => ({
   },
   computedFields: {
     url: { type: 'string', resolve: (post) => `/blogs/${post._raw.flattenedPath}` },
+    readingTime: { type: 'json', resolve: (post) => readingTime(post.body.raw) },
   },
 }));
 

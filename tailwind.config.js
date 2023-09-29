@@ -87,6 +87,10 @@ module.exports = {
         preahvihear: 'var(--font-preahvihear)',
         nunito: 'var(--font-nunito)',
       },
+      dropShadow: {
+        textpurpleDark: '0 8px 0 #692dca',
+        textpurpleLight: '0 8px 0 #c3a5f5',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],
