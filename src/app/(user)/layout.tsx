@@ -7,13 +7,16 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { ModeToggle } from '@/components/global/darkmode';
 import { preahvihear } from '../fonts';
 import Link from 'next/link';
+import { useWindowDemension } from '@/hooks/useWindowDemension';
+import NavbarMobile from '@/components/global/NavbarMobile';
 
 // export const metadata: Metadata = {
 //   title: 'Portfolio for Onembes',
 //   description: 'Portfolio for Onembes',
 // };
 
-const layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { width } = useWindowDemension();
   return (
     <div className={`${preahvihear.variable}`}>
       <header className="flex justify-between mt-2 sm:px-8 px-2">
@@ -26,7 +29,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
             className="dark:bg-white px-2 rounded-lg"
           />
         </Link>
-        <Navbar />
+        {/* <Navbar /> */}
+        {/* <NavbarMobile /> */}
+        {width < 568 ? <NavbarMobile /> : <Navbar />}
       </header>
       <ModeToggle />
       <div className="container">
@@ -37,4 +42,4 @@ const layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default layout;
+export default Layout;

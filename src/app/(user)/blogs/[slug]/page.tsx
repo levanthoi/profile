@@ -12,6 +12,10 @@ interface Props {
   };
 }
 
+export function generateStaticParams() {
+  return allBlogs.map((blog) => ({ slug: blog._raw.flattenedPath }));
+}
+
 const Blog: React.FC<Props> = ({ params }) => {
   const article = allBlogs?.find((blog) => blog._raw.flattenedPath === params.slug);
   if (!article) notFound();

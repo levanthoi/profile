@@ -8,7 +8,7 @@ interface Props {
 
 const BlogInfo: React.FC<Props> = ({ blog }) => {
   return (
-    <div className="my-8 flex items-center justify-center gap-20">
+    <div className="my-8 flex items-center justify-center sm:gap-20 gap-8 flex-wrap">
       <div className="flex">
         <UserSquare2 color="#9c40ce" />
         <strong>{blog.author}</strong>
