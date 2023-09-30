@@ -23,26 +23,28 @@ import { useWindowDemension } from '@/hooks/useWindowDemension';
 
 const NavbarMobile = () => {
   return (
-    <Dialog>
-      <DialogTrigger>
-        <AlignRight />
-      </DialogTrigger>
-      <DialogContent>
-        <NavigationMenu className="">
-          <NavigationMenuList className="flex flex-col gap-2 items-center justify-center">
-            {navbars?.map((item) => (
-              <NavigationMenuItem key={item.id}>
-                <Link href={item?.slug} legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    {item?.title}
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-      </DialogContent>
-    </Dialog>
+    <div className="sm:hidden">
+      <Dialog>
+        <DialogTrigger>
+          <AlignRight />
+        </DialogTrigger>
+        <DialogContent>
+          <NavigationMenu className="">
+            <NavigationMenuList className="flex flex-col gap-2 items-center justify-center">
+              {navbars?.map((item) => (
+                <NavigationMenuItem key={item.id}>
+                  <Link href={item?.slug} legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      {item?.title}
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

@@ -13,7 +13,10 @@ import Link from 'next/link';
 
 const Navbar = () => {
   return (
-    <NavigationMenu className="relative before:absolute before:bg-purple-700 before:w-1 before:h-[50%] before:-left-2 before:rounded-md">
+    <NavigationMenu
+      className="hidden sm:flex relative before:absolute before:bg-purple-700 before:w-1 before:h-[50%] before:-left-2 before:rounded-md"
+      suppressHydrationWarning={true}
+    >
       <NavigationMenuList>
         {navbars?.map((item) => (
           <NavigationMenuItem key={item.id}>

@@ -19,7 +19,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { width } = useWindowDemension();
   return (
     <div className={`${preahvihear.variable}`}>
-      <header className="flex justify-between mt-2 sm:px-8 px-2">
+      <header className="flex items-center justify-between mt-2 sm:px-8 px-2">
         <Link href="/">
           <Image
             src="/signature.png"
@@ -29,11 +29,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             className="dark:bg-white px-2 rounded-lg"
           />
         </Link>
-        {/* <Navbar /> */}
-        {/* <NavbarMobile /> */}
-        {width < 568 ? <NavbarMobile /> : <Navbar />}
+        <div className="flex gap-4 items-center">
+          <ModeToggle />
+          <Navbar />
+          <NavbarMobile />
+        </div>
       </header>
-      <ModeToggle />
       <div className="container">
         <Breadcrumb />
         {children}
