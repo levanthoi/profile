@@ -1,0 +1,450 @@
+---
+    title: "Laravel: Khi nào nên sử dụng Dependency Injection, Service và Static Methods"
+    description: "Có một số cách để sử dụng chúng là: static "helpers", objects, hoặc với Dependency Injection. Vậy thì khi nào sử dụng chúng là phù hợp nhất?Vấn đề lớn nhất tôi từng thấy trong Topic này - là có rất nhiều bài viết nói về việc **Sử dụng Dependency Injection và Services**, nhưng hầu như không có lời chú thích là **Tại sao** nên sử dụng nó và **Khi nào** nó thực sự có lợi. Vì vậy, hãy đi sâu vào các ví dụ cùng với một số lý thuyết trong quá trình thực hiện."
+    image: "../../public/posts/dependency.png"
+    publishedAt: "2023-10-22"
+    updatedAt: "2023-10-22"
+    author: "onembes"
+    visibility: true
+    tags: 
+    - dependency injection
+    - service provider
+    - service layer and controller
+    - static method
+---
+
+Với mô hình MVC, với các project nhỏ thì chúng ta hay xử lý các logic ở tầng Controller. Nhưng đến một lúc nào đó, chức năng chúng ta làm yêu cầu cần xử lý dữ liệu ở nhiều bảng khác nhau. Như vậy, file controller bây giờ sẽ phình to ra và rất khó đọc cũng như khó maintain về sau. Vậy thì thằng Service layer sinh ra để làm nhiệm vụ này.
+
+Có một số cách để sử dụng chúng là: static "helpers", objects, hoặc với Dependency Injection. Vậy thì khi nào sử dụng chúng là phù hợp nhất?
+
+Vấn đề lớn nhất tôi từng thấy trong Topic này - là có rất nhiều bài viết nói về việc **Sử dụng Dependency Injection và Services**, nhưng hầu như không có lời chú thích là **Tại sao** nên sử dụng nó và **Khi nào** nó thực sự có lợi. Vì vậy, hãy đi sâu vào các ví dụ cùng với một số lý thuyết trong quá trình thực hiện.
+
+Trong bài viết này, tôi sẽ có ví dụ về các cách để chuyển xử lý logic từ _Controller_ sang _Service_.
+
+1. Cách 1: Từ Controller sang Static Service “Helper”
+2. Cách 2: Tạo một class Service không dùng Static Method
+3. Cách 3: Service Object với một tham số (Parameter)
+4. Cách 4: Dependency Injection – Đơn giản
+5. Cách 5: Dependency Injection với Interface – Nâng cao
+
+---
+
+Tôi có đoạn code đặt tất cả vào Controller thì nó sẽ trông như thế này:
+
+```php
+// ... use ClientReportController
+
+class ClientReportController extends Controller
+{
+    public function index(Request $request)
+    {
+        $q = Transaction::with('project')
+            ->with('transaction_type')
+            ->with('income_source')
+            ->with('currency')
+            ->orderBy('transaction_date', 'desc');
+        if ($request->has('project')) {
+            $q->where('project_id', $request->project);
+        }
+
+        $transactions = $q->get();
+
+        $entries = [];
+
+        foreach ($transactions as $row) {
+            // ... 50 dòng code khác để điền $entry theo tháng
+        }
+
+        return view('report', compact('entries'));
+    }
+}
+```
+
+Bây giờ, bạn thấy truy vấn DB đó và cũng ẩn **50 dòng code** – có lẽ nó quá nhiều đối với **Controller**, vì vậy chúng ta cần lưu trữ chúng ở đâu đó, **phải không?**
+
+---
+
+### Cách 1: Từ Controller sang Static Service “Helper”
+
+Cách phổ biến nhất để tách logic khỏi Controller là tạo một class riêng, thường được gọi là Service. Nói cách khác, nó có thể được gọi là "helper" hoặc chỉ đơn giản là một "function".
+
+> Lưu ý: Các lớp Services không phải là một phần của Laravel, không có lệnh Artisan **make:service**. Nó chỉ là một lớp PHP đơn giản để tính toán và "Service" chỉ là tên điển hình cho nó.
+
+Được rồi, chúng ta tạo một file **app/Services/ReportService.php:**
+
+```php
+// ReportService
+namespace App\Services;
+
+use App\Transaction;
+use Carbon\Carbon;
+
+class ReportService {
+
+    public static function getTransactionReport(int $projectId = NULL)
+    {
+        $q = Transaction::with('project')
+            ->with('transaction_type')
+            ->with('income_source')
+            ->with('currency')
+            ->orderBy('transaction_date', 'desc');
+        if (!is_null($projectId)) {
+            $q->where('project_id', $projectId);
+        }
+        $transactions = $q->get();
+        $entries = [];
+
+        foreach ($transactions as $row) {
+            // ... 50 dòng code khác để điền $entry theo tháng
+        }
+
+        return $entries;
+    }
+
+}
+```
+
+Và bây giờ, chúng ta có thể gọi hàm đó từ Controller, như thế này:
+
+```php
+// ...Controller
+use App\Services\ReportService;
+
+class ClientReportController extends Controller
+{
+    public function index(Request $request)
+    {
+        $entries = ReportService::getTransactionReport($request->input('project'));
+
+        return view('report', compact('entries'));
+    }
+}
+```
+
+Thế là xong, **Controller** bây giờ đã clear hơn rất nhiều rồi phải không?
+
+Như bạn có thể thấy, tôi đã sử dụng **static** method và gọi nó bằng cú pháp ::, vì vậy thực tế không tạo một object cho Service class đó.
+
+#### Thế khi nào nên sử dụng?
+
+Thông thường, bạn sẽ dễ dàng thay thế nó bằng một function đơn giản, không cần đến class. Nó giống như một trình trợ giúp toàn cục (global helper), nhưng nằm bên trong class **ReportService** chỉ nhằm mục đích OOP – với các không gian tên (namespace) và thư mục.
+
+Ngoài ra, hãy nhớ rằng các **static methods** và **classes** là **stateless**. Điều đó có nghĩa là method này chỉ được gọi một lần và không lưu bất kỳ dữ liệu nào trong chính lớp đó.
+
+Nhưng nếu bạn muốn giữ một số dữ liệu bên trong service đó…
+
+---
+
+###Cách 2: Tạo một class Service không dùng Static Method
+Một cách khác để khởi tạo lớp đó là làm cho phương thức đó không tĩnh (non-static) và tạo một đối tượng:
+
+**app/Services/ReportService.php:**
+
+```php
+// app/Services/ReportService.php:
+class ReportService {
+
+    // Just "public", but no "static"
+    public function getTransactionReport(int $projectId = NULL)
+    {
+        // ... Absolutely the same code as in static version
+
+        return $entries;
+    }
+
+}
+```
+
+**ClientReportController**:
+
+```php
+// ClientReportController:
+use App\Services\ReportService;
+
+class ClientReportController extends Controller
+{
+    public function index(Request $request)
+    {
+        $entries = (new ReportService())->getTransactionReport($request->input('project'));
+
+        return view('report', compact('entries');
+    }
+}
+```
+
+**Hoặc**
+
+```php
+$reportService = new ReportService();
+$entries = $reportService->getTransactionReport($request->input('project'));
+```
+
+Chả khác biệt nhiều so với static method?
+Đó là bởi vì, đối với trường hợp đơn giản này, nó thực sự không có gì khác biệt.
+
+Nhưng sẽ rất hữu ích nếu bạn có một vài method bên trong service và bạn muốn "xâu chuỗi" chúng, gọi ngay lần lượt từng method khác, vì vậy mọi method sẽ trả về cùng một instance service. Bạn có thể xem ví dụ đơn giản tại đây:
+
+```php
+class ReportService {
+
+    private $year;
+
+    public function setYear($year)
+    {
+        $this->year = $year;
+
+        return $this;
+    }
+
+    public function getTransactionReport(int $projectId = NULL)
+    {
+        $q = Transaction::with('project')
+            ->with('transaction_type')
+            ->with('income_source')
+            ->with('currency')
+            ->whereYear('transaction_date', $this->year)
+            ->orderBy('transaction_date', 'desc');
+        // ...
+```
+
+Và trong Controller:
+
+```php
+public function index(Request $request)
+{
+    $entries = (new ReportService())
+        ->setYear(2020)
+        ->getTransactionReport($request->input('project'));
+// ...
+```
+
+#### Thế khi nào nên sử dụng?
+
+Chỉ nên dùng khi cần gọi sử dụng các method lồng nhau.
+
+> Nếu Service của bạn không chấp nhận bất kỳ tham số nào trong khi tạo đối tượng** new ReportService()**, thì chỉ cần sử dụng các static method. Bạn không cần phải tạo một đối tượng nào cả.
+
+###Cách 3: Service Object với một tham số (Parameter)
+
+Nhưng nếu bạn muốn tạo service đó bằng một tham số thì sao? Chẳng hạn như, muốn có dữ liệu báo cáo hàng năm.
+
+**app/Services/YearlyReportService.php:**
+
+```php
+    public function __construct(int $year)
+    {
+        $this->year = $year;
+    }
+
+    public function getTransactionReport(int $projectId = NULL)
+    {
+        $q = Transaction::with('project')
+            ->with('transaction_type')
+            ->with('income_source')
+            ->with('currency')
+            ->whereYear('transaction_date', $this->year)
+            ->orderBy('transaction_date', 'desc');
+
+        $entries = [];
+
+        foreach ($transactions as $row) {
+            // ... 50 dòng code khác
+        }
+
+        return $entries;
+    }
+
+    // Một báo cáo khác cũng sử dụng $this->year
+    public function getIncomeReport(int $projectId = NULL)
+    {
+        $q = Transaction::with('project')
+            ->with('transaction_type')
+            ->with('income_source')
+            ->with('currency')
+            ->whereYear('transaction_date', $this->year)
+            ->where('transaction_type', 'income')
+            ->orderBy('transaction_date', 'desc');
+
+        $entries = [];
+
+        // ... logic
+
+        return $entries;
+    }
+}
+```
+
+Có vẻ phức tạp hơn nhỉ =))
+Và trong Controller
+
+```php
+use App\Services\YearlyReportService;
+
+class ClientReportController extends Controller
+{
+    public function index(Request $request)
+    {
+        $year = $request->input('year', date('Y'));
+		// pass $year vào contructor của YearlyRe...
+        $reportService = new YearlyReportService($year);
+
+        $fullReport = $reportService->getTransactionReport($request->input('project'));
+        $incomeReport = $reportService->getIncomeReport($request->input('project'));
+    }
+}
+```
+
+Trong ví dụ này, cả hai method của Service là** getTransactionReport() ** và **getIncomeReport()** sẽ sử dụng cùng một param **$year** mà chúng ta đã truyền khi tạo đối tượng.
+
+#### Thế khi nào nên sử dụng?
+
+Khi Service của bạn cần một tham số thay đổi để xử lý logic được gửi từ Controller xuống.
+Thế thôi !!!@
+###Cách 4: Dependency Injection – Đơn giản
+Đến dependency rồi đây =) . Nâng cao hơn tí, với cách 3, bạn chỉ pass 1 đối số là biến nhỏ, nhưng nếu trong Controller bạn không chỉ có một method là index sử dụng method bên trong Service thì sao. Rồi ví dụ Service nó cũng thế thì như nào ?
+
+> Bạn thấy thế nào?
+
+Thì Dependency Injection này được sinh ra để giải quyết việc đó. Nó giúp cho việc fix cũng như test về sau được dễ dàng hơn.
+
+Dễ hiểu là truyền các dependency class hoặc interface vào **\_\_contruct()**
+
+> Bạn nên tìm hiểu qua về IOC Pattern
+
+```php
+class ClientReportController extends Controller
+{
+    private $reportService;
+
+    public function __construct(ReportService $service)
+    {
+        $this->reportService = $service;
+    }
+
+    public function index(Request $request)
+    {
+        $entries = $this->reportService->getTransactionReport($request->input('project'));
+        // ...
+    }
+
+    public function income(Request $request)
+    {
+        $entries = $this->reportService->getIncomeReport($request->input('project'));
+        // ...
+    }
+}
+```
+
+> Điều này được cung cấp bởi chính Laravel, vì vậy bạn không cần phải lo lắng về việc thực sự tạo đối tượng lớp đó, bạn chỉ cần truyền đúng loại tham số cho hàm tạo
+
+#### Thế khi nào nên sử dụng?
+
+###Cách 5: Dependency Injection với Interface – Nâng cao
+**app/Interfaces/ReportServiceInterface.php:**
+
+```php
+namespace App\Interfaces;
+
+interface ReportServiceInterface {
+
+    public function getTransactionReport(int $projectId = NULL);
+
+}
+```
+
+** app/Services/ReportService.php:**
+
+```php
+use App\Interfaces\ReportServiceInterface;
+
+class ReportService implements ReportServiceInterface {
+
+    public function getTransactionReport(int $projectId = NULL)
+    {
+	//...
+	}
+```
+
+**app/Services/YearlyReportService.php:**
+
+```php
+use App\Interfaces\ReportServiceInterface;
+
+class YearlyReportService implements ReportServiceInterface {
+
+    private $year;
+
+    public function __construct(int $year = NULL)
+    {
+        $this->year = $year;
+    }
+
+    public function getTransactionReport(int $projectId = NULL)
+    {}
+```
+
+**Controller**
+
+```php
+use App\Interfaces\ReportServiceInterface;
+
+class ClientReportController extends Controller
+{
+    private $reportService;
+
+    public function __construct(ReportServiceInterface $reportService)
+    {
+        $this->reportService = $reportService;
+    }
+
+    public function index(Request $request)
+    {
+        $entries = $this->reportService->getTransactionReport($request->input('project'));
+        // ... như cũ
+```
+
+Phần chính ở đây là** \_\_construct(ReportServiceInterface $reportService)**. Bây giờ, chúng ta có thể đính kèm và hoán đổi bất kỳ lớp nào implements interface đó.
+
+Tuy nhiên, theo mặc định, chúng ta mất "magic injection" của Laravel, vì framework không biết nên sử dụng lớp nào.(Bởi vì bạn đang **type-hint contructor** là một **interface** ) Vì vậy, nếu bạn để nó như vậy, bạn sẽ gặp lỗi:
+
+_Illuminate\Contracts\Container\BindingResolutionException
+Target [App\Interfaces\ReportServiceInterface] is not instantiable while building [App\Http\Controllers\Admin\ClientReportController]._
+
+Chúng ta cần fix lỗi này bằng cách vào trong **app/Providers/AppServiceProvider.php** và đăng kí interface đó vào** register(**).
+
+Để làm cho ví dụ này hoàn toàn rõ ràng, hãy thêm câu lệnh if với logic rằng nếu environment('local'), chúng ta sẽ use ReportService, nếu không thì use YearlyReportService.
+
+```php
+use App\Interfaces\ReportServiceInterface;
+use App\Services\ReportService;
+use App\Services\YearlyReportService;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        if (app()->environment('local')) {
+            $this->app->bind(ReportServiceInterface::class, function () {
+                return new ReportService();
+            });
+        } else {
+            $this->app->bind(ReportServiceInterface::class, function () {
+                return new YearlyReportService();
+            });
+        }
+    }
+}
+```
+
+#### Thế khi nào nên sử dụng?
+
+Ví dụ trên có lẽ là cách sử dụng phổ biến nhất cho Dependency Injection with Interfaces n - khi bạn cần swap Service của mình tùy thuộc vào một số điều kiện(condition) và bạn có thể dễ dàng thực hiện việc này trong Service Provider.
+
+Một số ví dụ khác có thể là khi bạn đổi email provider hoặc payment provider của mình. Nhưng tất nhiên, điều quan trọng (và không dễ) là đảm bảo rằng cả hai service đều triển khai cùng một giao diện.
+
+---
