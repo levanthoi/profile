@@ -10,7 +10,7 @@ import {
 } from '../ui/navigation-menu';
 import { navbars } from '@/constants/navbar';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const Navbar = () => {
   const pathname = usePathname();
