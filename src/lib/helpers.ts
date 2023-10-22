@@ -7,3 +7,5 @@ export const getRandomColor = () => {
   const l = getRandomNumber(100);
   return `hsl(${h}deg, ${s}%, ${l}%)`;
 };
+
+export const getLevelTOC = (level: string) => {};

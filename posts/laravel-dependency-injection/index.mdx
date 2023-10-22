@@ -135,7 +135,8 @@ Nhưng nếu bạn muốn giữ một số dữ liệu bên trong service đó�
 
 ---
 
-###Cách 2: Tạo một class Service không dùng Static Method
+### Cách 2: Tạo một class Service không dùng Static Method
+
 Một cách khác để khởi tạo lớp đó là làm cho phương thức đó không tĩnh (non-static) và tạo một đối tượng:
 
 **app/Services/ReportService.php:**
@@ -224,7 +225,7 @@ Chỉ nên dùng khi cần gọi sử dụng các method lồng nhau.
 
 > Nếu Service của bạn không chấp nhận bất kỳ tham số nào trong khi tạo đối tượng** new ReportService()**, thì chỉ cần sử dụng các static method. Bạn không cần phải tạo một đối tượng nào cả.
 
-###Cách 3: Service Object với một tham số (Parameter)
+### Cách 3: Service Object với một tham số (Parameter)
 
 Nhưng nếu bạn muốn tạo service đó bằng một tham số thì sao? Chẳng hạn như, muốn có dữ liệu báo cáo hàng năm.
 
@@ -300,7 +301,9 @@ Trong ví dụ này, cả hai method của Service là** getTransactionReport() 
 
 Khi Service của bạn cần một tham số thay đổi để xử lý logic được gửi từ Controller xuống.
 Thế thôi !!!@
-###Cách 4: Dependency Injection – Đơn giản
+
+### Cách 4: Dependency Injection – Đơn giản
+
 Đến dependency rồi đây =) . Nâng cao hơn tí, với cách 3, bạn chỉ pass 1 đối số là biến nhỏ, nhưng nếu trong Controller bạn không chỉ có một method là index sử dụng method bên trong Service thì sao. Rồi ví dụ Service nó cũng thế thì như nào ?
 
 > Bạn thấy thế nào?
@@ -339,7 +342,8 @@ class ClientReportController extends Controller
 
 #### Thế khi nào nên sử dụng?
 
-###Cách 5: Dependency Injection với Interface – Nâng cao
+### Cách 5: Dependency Injection với Interface – Nâng cao
+
 **app/Interfaces/ReportServiceInterface.php:**
 
 ```php
@@ -352,7 +356,7 @@ interface ReportServiceInterface {
 }
 ```
 
-** app/Services/ReportService.php:**
+**app/Services/ReportService.php:**
 
 ```php
 use App\Interfaces\ReportServiceInterface;

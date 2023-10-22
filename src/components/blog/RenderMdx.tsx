@@ -19,7 +19,10 @@ const RenderMdx: React.FC<Props> = ({ article }) => {
   const MDXContent = useMDXComponent(article.body.code);
   return (
     <div
-      className="prose prose-lg max-w-max 
+      className="
+      overflow-hidden
+      break-words
+      prose prose-lg max-w-max 
     prose-blockquote:bg-purple-200 
     prose-blockquote:border-purple-600 
       prose-blockquote:p-2

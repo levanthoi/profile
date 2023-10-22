@@ -18,12 +18,13 @@ const TableOfContent: React.FC<Props> = ({ article }) => {
                 <a
                   href={`#${heading.slug}`}
                   data-level={heading.level}
-                  className="data-[level=two]:pl-2 pt-2
-                  
-                  data-[level=three]:pl-6
-
-                  flex items-center
-                  "
+                  // className="
+                  // data-[level=two]:pl-2 pt-2
+                  // data-[level=three]:pl-6
+                  // flex items-center
+                  // "
+                  className={`flex items-center`}
+                  style={{ paddingLeft: `${heading.level}px` }}
                 >
                   <span className="flex w-1 h-1 rounded-full bg-gray-600 mr-2">&nbsp;</span>
                   <span className="hover:underline">{heading.text}</span>

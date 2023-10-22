@@ -32,7 +32,7 @@ const BlogCard: React.FC<Props> = ({ article }) => {
           </strong>
         </h1>
       </Link>
-      <p>{article.description}</p>
+      <p className="line-clamp-3">{article.description}</p>
     </article>
   );
 };

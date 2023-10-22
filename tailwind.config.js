@@ -90,6 +90,8 @@ module.exports = {
       dropShadow: {
         textpurpleDark: '0 8px 0 #692dca',
         textpurpleLight: '0 8px 0 #c3a5f5',
+        textpurpleDark: '0 3px 0 #692dca',
+        mdtextpurpleLight: '0 3px 0 #c3a5f5',
       },
     },
   },

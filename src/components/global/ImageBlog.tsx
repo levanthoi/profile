@@ -17,7 +17,7 @@ const ImageBlog: React.FC<Props> = ({ article, sizes, className }) => {
       alt={article.title}
       placeholder="blur"
       blurDataURL={article.image.blurhashDataUrl}
-      className={`w-full h-full object-cover object-center group-hover:scale-105 transition-all ease duration-300 ${className}`}
+      className={`w-full h-fit object-cover object-center group-hover:scale-105 transition-all ease duration-300 ${className}`}
       sizes={sizes}
       priority
     />

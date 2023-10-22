@@ -23,7 +23,7 @@ const Blog: React.FC<Props> = ({ params }) => {
 
   return (
     <article className="my-16">
-      <h1 className="uppercase leading-snug text-center text-7xl font-extrabold drop-shadow-textpurpleLight dark:drop-shadow-textpurpleDark">
+      <h1 className="uppercase leading-snug text-center text-xl md:text-3xl lg:text-7xl font-extrabold drop-shadow-mdtextpurpleLight dark:drop-shadow-textpurpleDark md:drop-shadow-textpurpleLight md:dark:drop-shadow-textpurpleDark">
         {article.title}
       </h1>
       <BlogInfo blog={article} />

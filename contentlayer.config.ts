@@ -37,7 +37,7 @@ export const Blog = defineDocumentType(() => ({
           const content = groups?.content;
 
           return {
-            level: flag?.length == 1 ? 'one' : flag?.length == 2 ? 'two' : 'three',
+            level: flag ? flag.length * 6 : 1,
             text: content,
             slug: content ? slugger.slug(content) : undefined,
           };
