@@ -10,11 +10,16 @@ import {
 } from '../ui/navigation-menu';
 import { navbars } from '@/constants/navbar';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 const Navbar = () => {
+  const pathname = usePathname();
+
   return (
     <NavigationMenu
-      className="hidden sm:flex relative before:absolute before:bg-purple-700 before:w-1 before:h-[50%] before:-left-2 before:rounded-md"
+      className={`${
+        pathname === '/' ? 'flex' : 'hidden'
+      } sm:flex relative before:absolute before:bg-purple-700 before:w-1 before:h-[50%] before:-left-2 before:rounded-md`}
       suppressHydrationWarning={true}
     >
       <NavigationMenuList>

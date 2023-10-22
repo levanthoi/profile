@@ -22,7 +22,7 @@ const Screen: React.FC<Props> = () => {
       style={isLoading ? { top: '-100%', opacity: 0 } : {}}
     >
       <p
-        className={`text-9xl font-bold drop-shadow-sm`}
+        className={`text-7xl md:text-9xl font-bold drop-shadow-sm`}
         // style={isLoading ? { animation: 'animate-title' } : {}}
         ref={text}
       >
