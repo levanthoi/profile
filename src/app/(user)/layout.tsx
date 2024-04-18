@@ -9,6 +9,7 @@ import { preahvihear } from '../fonts';
 import Link from 'next/link';
 import { useWindowDemension } from '@/hooks/useWindowDemension';
 import NavbarMobile from '@/components/global/NavbarMobile';
+import NextTopLoader from 'nextjs-toploader';
 
 // export const metadata: Metadata = {
 //   title: 'Portfolio for Onembes',
@@ -19,6 +20,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { width } = useWindowDemension();
   return (
     <div className={`${preahvihear.variable}`}>
+      <NextTopLoader color='#7E22CE' />
       <header className="flex items-center justify-between mt-2 sm:px-8 px-2">
         <Link href="/">
           <Image
