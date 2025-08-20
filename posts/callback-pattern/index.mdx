@@ -1,0 +1,626 @@
+# Tài liệu: Promise Wrapper Pattern trong TypeScript/JavaScript
+
+## Mục lục
+1. [Tổng quan](#tổng-quan)
+2. [Vấn đề và giải pháp](#vấn-đề-và-giải-pháp)
+3. [Các pattern khác nhau](#các-pattern-khác-nhau)
+4. [So sánh và khuyến nghị](#so-sánh-và-khuyến-nghị)
+5. [Ví dụ thực tế](#ví-dụ-thực-tế)
+6. [Best Practices](#best-practices)
+
+---
+
+## Tổng quan
+
+### Context
+Khi làm việc với legacy JavaScript code sử dụng callback pattern, việc tích hợp với TypeScript async/await có thể gặp khó khăn. Đặc biệt khi function trả về `void` và sử dụng callback thay vì Promise.
+
+### Vấn đề chính
+```javascript
+// Legacy JavaScript function
+function getQuestionsByListIds(listIds, callBack) {
+    var data = {
+        qlib_list: listIds,
+        id_subject: _vals.id_subject,
+        id_skill: _vals.id_category,
+        cv_q: _cv_q
+    }
+    _apiCreate("/course/question/get-question-of-ids", data).then(callBack);
+}
+```
+
+Function này:
+- Trả về `void`
+- Sử dụng callback pattern
+- Không thể sử dụng trực tiếp với `await`
+
+---
+
+## Vấn đề và giải pháp
+
+### Vấn đề
+```typescript
+// ❌ Không thể làm như này
+const data = await getQuestionsByListIds(listIds); // Error: void không thể await
+```
+
+### Giải pháp: Promise Wrapper
+```typescript
+// ✅ Cách đúng
+await new Promise<void>((resolve) => {
+    getQuestionsByListIds(listIds, (data) => {
+        // Xử lý data
+        resolve();
+    });
+});
+```
+
+---
+
+## Các pattern khác nhau
+
+### 1. Async/Await với Promise Wrapper (Khuyến nghị)
+
+```typescript
+async initExam() {
+    const callBack = async (data: Question[]) => {
+        if (data) {
+            console.log("data", data);
+            // Xử lý data
+        }
+    }
+
+    await new Promise<void>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, async (data: Question[]) => {
+            await callBack(data);
+            resolve();
+        });
+    });
+    
+    // Code tiếp theo chỉ chạy sau khi callback hoàn thành
+    console.log("Đã xử lý xong");
+}
+```
+
+**Ưu điểm:**
+- ✅ Flow control tốt
+- ✅ Error handling dễ dàng
+- ✅ Code dễ đọc và maintain
+- ✅ Có thể return value
+
+**Nhược điểm:**
+- ❌ Code dài hơn một chút
+
+### 2. Callback Pattern Thuần túy
+
+```typescript
+initExam() {
+    const callBack = (data: Question[]) => {
+        if (data) {
+            console.log("data", data);
+            // Xử lý data
+        }
+    }
+
+    (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, callBack);
+}
+```
+
+**Ưu điểm:**
+- ✅ Đơn giản, ngắn gọn
+- ✅ Không cần Promise wrapper
+
+**Nhược điểm:**
+- ❌ Khó xử lý lỗi
+- ❌ Callback hell khi có nhiều async operations
+- ❌ Không thể return value
+- ❌ Khó kiểm soát flow
+
+### 3. Promise.then() Pattern
+
+```typescript
+initExam() {
+    const callBack = (data: Question[]) => {
+        if (data) {
+            console.log("data", data);
+        }
+    }
+
+    new Promise<void>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, (data: Question[]) => {
+            callBack(data);
+            resolve();
+        });
+    }).then(() => {
+        console.log("Đã xử lý xong");
+    });
+}
+```
+
+**Ưu điểm:**
+- ✅ Có thể xử lý lỗi với .catch()
+- ✅ Flow control tốt hơn callback
+
+**Nhược điểm:**
+- ❌ Vẫn phức tạp hơn async/await
+- ❌ Có thể dẫn đến Promise chain
+
+---
+
+## So sánh và khuyến nghị
+
+| Pattern | Flow Control | Error Handling | Readability | Complexity | Khuyến nghị |
+|---------|-------------|----------------|-------------|------------|-------------|
+| **Async/Await + Promise Wrapper** | ✅ Tốt | ✅ Tốt | ✅ Tốt | Trung bình | ⭐⭐⭐⭐⭐ |
+| **Promise.then()** | ✅ Tốt | ✅ Tốt | Trung bình | Cao | ⭐⭐⭐ |
+| **Callback thuần** | ❌ Kém | ❌ Kém | ❌ Kém | Thấp | ⭐⭐ |
+
+### Khuyến nghị sử dụng:
+
+1. **Async/Await + Promise Wrapper** cho:
+   - Code mới viết
+   - Cần flow control tốt
+   - Cần error handling
+   - Cần return value
+
+2. **Promise.then()** cho:
+   - Legacy code migration
+   - Khi không thể dùng async/await
+
+3. **Callback thuần** cho:
+   - Logic đơn giản
+   - Không cần flow control
+   - Legacy code không thay đổi
+
+---
+
+## Ví dụ thực tế
+
+### Ví dụ 1: Error Handling
+
+```typescript
+async initExam() {
+    try {
+        await new Promise<void>((resolve, reject) => {
+            (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, async (data: Question[]) => {
+                try {
+                    await callBack(data);
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+        
+        console.log("Thành công");
+        return true;
+    } catch (error) {
+        console.error("Lỗi:", error);
+        return false;
+    }
+}
+```
+
+### Ví dụ 2: Dependency Chain
+
+```typescript
+async initExam() {
+    // Bước 1: Lấy questions
+    await new Promise<void>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, async (data: Question[]) => {
+            await this.processQuestions(data);
+            resolve();
+        });
+    });
+    
+    // Bước 2: Khởi tạo UI (chỉ chạy sau Bước 1)
+    await this.initUI();
+    
+    // Bước 3: Bind events (chỉ chạy sau Bước 2)
+    await this.bindEvents();
+    
+    console.log("Khởi tạo hoàn tất");
+}
+```
+
+### Ví dụ 3: Return Value
+
+```typescript
+async getQuestions(): Promise<Question[]> {
+    return new Promise<Question[]>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, (data: Question[]) => {
+            resolve(data);
+        });
+    });
+}
+
+// Sử dụng
+const questions = await this.getQuestions();
+```
+
+---
+
+## Best Practices
+
+### 1. Type Safety
+```typescript
+// ✅ Đúng - Chỉ định type rõ ràng
+await new Promise<void>((resolve) => {
+    getQuestionsByListIds(listIds, (data: Question[]) => {
+        resolve();
+    });
+});
+
+// ❌ Sai - Không chỉ định type
+await new Promise((resolve) => {
+    getQuestionsByListIds(listIds, (data) => {
+        resolve();
+    });
+});
+```
+
+### 2. Error Handling
+```typescript
+// ✅ Đúng - Có error handling
+await new Promise<void>((resolve, reject) => {
+    getQuestionsByListIds(listIds, (data: Question[]) => {
+        try {
+            processData(data);
+            resolve();
+        } catch (error) {
+            reject(error);
+        }
+    });
+});
+
+// ❌ Sai - Không có error handling
+await new Promise<void>((resolve) => {
+    getQuestionsByListIds(listIds, (data: Question[]) => {
+        processData(data); // Có thể throw error
+        resolve();
+    });
+});
+```
+
+### 3. Clean Code
+```typescript
+// ✅ Đúng - Tách logic
+async initExam() {
+    const questions = await this.fetchQuestions();
+    await this.processQuestions(questions);
+    await this.initUI();
+}
+
+private async fetchQuestions(): Promise<Question[]> {
+    return new Promise<Question[]>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, resolve);
+    });
+}
+
+// ❌ Sai - Logic lồng nhau phức tạp
+async initExam() {
+    await new Promise<void>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, async (data: Question[]) => {
+            // Logic phức tạp ở đây
+            resolve();
+        });
+    });
+}
+```
+
+### 4. Performance
+```typescript
+// ✅ Đúng - Không block main thread
+async initExam() {
+    const questionsPromise = new Promise<Question[]>((resolve) => {
+        (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, resolve);
+    });
+    
+    // Có thể làm việc khác trong khi chờ
+    await this.prepareUI();
+    
+    // Sau đó mới xử lý questions
+    const questions = await questionsPromise;
+    await this.processQuestions(questions);
+}
+```
+
+### 5. Memory Management
+```typescript
+// ✅ Đúng - Cleanup resources
+async initExam() {
+    let timeoutId: NodeJS.Timeout;
+    
+    try {
+        await new Promise<void>((resolve, reject) => {
+            timeoutId = setTimeout(() => {
+                reject(new Error("Timeout"));
+            }, 5000);
+            
+            (window as any).CATE_UI.getQuestionsByListIds(this.exam_data.list_id_quiz, (data: Question[]) => {
+                clearTimeout(timeoutId);
+                resolve();
+            });
+        });
+    } finally {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+    }
+}
+```
+
+---
+
+## Common Anti-patterns
+
+### 1. Promise Constructor Anti-pattern
+```typescript
+// ❌ Sai - Không cần thiết
+async getData() {
+    return new Promise((resolve) => {
+        resolve(fetch('/api/data')); // fetch() đã trả về Promise
+    });
+}
+
+// ✅ Đúng
+async getData() {
+    return fetch('/api/data');
+}
+```
+
+### 2. Nested Promise Anti-pattern
+```typescript
+// ❌ Sai - Nested Promise
+async processData() {
+    return new Promise((resolve) => {
+        getData((data) => {
+            new Promise((innerResolve) => {
+                processData(data, (result) => {
+                    innerResolve(result);
+                });
+            }).then(resolve);
+        });
+    });
+}
+
+// ✅ Đúng - Flattened Promise
+async processData() {
+    const data = await new Promise((resolve) => {
+        getData(resolve);
+    });
+    
+    return new Promise((resolve) => {
+        processData(data, resolve);
+    });
+}
+```
+
+### 3. Ignoring Errors
+```typescript
+// ❌ Sai - Bỏ qua errors
+await new Promise<void>((resolve) => {
+    getQuestionsByListIds(listIds, (data) => {
+        // Không xử lý lỗi
+        resolve();
+    });
+});
+
+// ✅ Đúng - Xử lý errors
+await new Promise<void>((resolve, reject) => {
+    getQuestionsByListIds(listIds, (data) => {
+        if (data) {
+            resolve();
+        } else {
+            reject(new Error("No data received"));
+        }
+    });
+});
+```
+
+---
+
+## Testing
+
+### Unit Test với Jest
+```typescript
+describe('Promise Wrapper Pattern', () => {
+    it('should handle successful callback', async () => {
+        const mockCallback = jest.fn();
+        const mockData = [{ id: 1, question: 'Test' }];
+        
+        // Mock legacy function
+        (window as any).CATE_UI = {
+            getQuestionsByListIds: (listIds: string, callback: Function) => {
+                callback(mockData);
+            }
+        };
+        
+        await new Promise<void>((resolve) => {
+            (window as any).CATE_UI.getQuestionsByListIds('1,2,3', (data: any[]) => {
+                mockCallback(data);
+                resolve();
+            });
+        });
+        
+        expect(mockCallback).toHaveBeenCalledWith(mockData);
+    });
+    
+    it('should handle errors', async () => {
+        const mockError = new Error('API Error');
+        
+        (window as any).CATE_UI = {
+            getQuestionsByListIds: (listIds: string, callback: Function) => {
+                throw mockError;
+            }
+        };
+        
+        await expect(
+            new Promise<void>((resolve, reject) => {
+                try {
+                    (window as any).CATE_UI.getQuestionsByListIds('1,2,3', (data: any[]) => {
+                        resolve();
+                    });
+                } catch (error) {
+                    reject(error);
+                }
+            })
+        ).rejects.toThrow('API Error');
+    });
+});
+```
+
+---
+
+## Migration Guide
+
+### Từ Callback sang Promise Wrapper
+
+**Before (Callback):**
+```typescript
+class LegacyService {
+    initExam() {
+        this.getQuestionsByListIds('1,2,3', (data) => {
+            this.processData(data);
+            this.initUI();
+        });
+    }
+}
+```
+
+**After (Promise Wrapper):**
+```typescript
+class ModernService {
+    async initExam() {
+        await new Promise<void>((resolve) => {
+            this.getQuestionsByListIds('1,2,3', (data) => {
+                this.processData(data);
+                resolve();
+            });
+        });
+        
+        await this.initUI();
+    }
+}
+```
+
+### Từ Promise.then() sang Async/Await
+
+**Before (Promise.then()):**
+```typescript
+initExam() {
+    new Promise<void>((resolve) => {
+        getQuestionsByListIds(listIds, (data) => {
+            processData(data);
+            resolve();
+        });
+    }).then(() => {
+        initUI();
+    }).then(() => {
+        bindEvents();
+    });
+}
+```
+
+**After (Async/Await):**
+```typescript
+async initExam() {
+    await new Promise<void>((resolve) => {
+        getQuestionsByListIds(listIds, (data) => {
+            processData(data);
+            resolve();
+        });
+    });
+    
+    await initUI();
+    await bindEvents();
+}
+```
+
+---
+
+## Performance Considerations
+
+### 1. Memory Usage
+```typescript
+// ✅ Tốt - Cleanup references
+async processLargeData() {
+    let data: any = null;
+    
+    await new Promise<void>((resolve) => {
+        getLargeData((result) => {
+            data = result;
+            resolve();
+        });
+    });
+    
+    // Process data
+    const processed = await this.processData(data);
+    
+    // Cleanup
+    data = null;
+    
+    return processed;
+}
+```
+
+### 2. Concurrency
+```typescript
+// ✅ Tốt - Parallel execution
+async loadMultipleData() {
+    const promises = [
+        new Promise((resolve) => getData1(resolve)),
+        new Promise((resolve) => getData2(resolve)),
+        new Promise((resolve) => getData3(resolve))
+    ];
+    
+    const [data1, data2, data3] = await Promise.all(promises);
+    return { data1, data2, data3 };
+}
+```
+
+### 3. Timeout Handling
+```typescript
+// ✅ Tốt - Timeout protection
+async getDataWithTimeout(timeoutMs: number = 5000) {
+    return Promise.race([
+        new Promise((resolve) => {
+            getData(resolve);
+        }),
+        new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout')), timeoutMs);
+        })
+    ]);
+}
+```
+
+---
+
+## Kết luận
+
+Promise Wrapper Pattern là một kỹ thuật quan trọng khi làm việc với legacy JavaScript code trong TypeScript. Việc sử dụng `await new Promise<void>()` trong trường hợp callback pattern là:
+
+- ✅ **Cần thiết** cho flow control
+- ✅ **Khuyến nghị** cho error handling
+- ✅ **Tốt** cho maintainability
+- ✅ **Quan trọng** cho type safety
+
+**Khuyến nghị cuối cùng:** Sử dụng Async/Await + Promise Wrapper cho code mới và migration dần dần legacy code sang pattern này để có được codebase tốt hơn.
+
+### Checklist khi sử dụng Promise Wrapper:
+
+- [ ] Có type safety với TypeScript
+- [ ] Có error handling đầy đủ
+- [ ] Có cleanup resources
+- [ ] Có timeout protection nếu cần
+- [ ] Có unit tests
+- [ ] Code dễ đọc và maintain
+
+---
+
+## Tài liệu tham khảo
+
+- [MDN - Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- [TypeScript - Async Functions](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-1-7.html#async-functions)
+- [JavaScript.info - Promises](https://javascript.info/promise-basics)
+- [You Don't Know JS - Async & Performance](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/README.md)
